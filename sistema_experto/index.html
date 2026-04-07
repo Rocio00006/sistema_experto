@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartExpert — Sistema Experto de Smartphones</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3348;
+    --accent: #4f8ef7;
+    --accent2: #7c5cfc;
+    --text: #e8eaf6;
+    --muted: #7b82a8;
+    --green: #3ecf8e;
+    --amber: #f5a623;
+    --red: #f26b6b;
+    --radius: 12px;
+    --font: 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 2rem; border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 9px; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; }
+  .logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .logo-sub { font-size: 12px; color: var(--muted); }
+  .header-badge { background: #1e3a5f; color: var(--accent); font-size: 11px;
+    padding: 4px 10px; border-radius: 20px; border: 1px solid #2a4a7f; }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+  .layout { display: grid; grid-template-columns: 400px 1fr; gap: 2rem; align-items: start; }
+
+  /* FORM CARD */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem;
+  }
+  .card-title {
+    font-size: 14px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 1.2rem; display: flex; align-items: center; gap: 6px;
+  }
+  .card-title::before { content: ''; display: block; width: 3px; height: 14px;
+    background: var(--accent); border-radius: 2px; }
+
+  /* FORM ELEMENTS */
+  .field { margin-bottom: 1rem; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+  input, select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 9px 12px; border-radius: 8px;
+    font-size: 14px; font-family: var(--font); outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* PRIORIDADES */
+  .priorities { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .priority-item label {
+    display: block; text-align: center; font-size: 11px;
+    color: var(--muted); margin-bottom: 4px;
+  }
+  .priority-item select { padding: 7px 8px; font-size: 12px; }
+
+  /* SUBMIT */
+  .btn-primary {
+    width: 100%; padding: 13px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white; border: none; border-radius: 8px; font-size: 15px;
+    font-weight: 600; cursor: pointer; margin-top: 0.5rem;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ESTADO */
+  .estado-panel {
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 12px; min-height: 300px;
+    color: var(--muted); font-size: 14px; text-align: center;
+  }
+  .spinner {
+    width: 40px; height: 40px; border: 3px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RESULTADOS */
+  .results-section { display: none; }
+  .results-section.visible { display: block; }
+
+  .section-label {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 0.75rem;
+  }
+  .label-principal { color: var(--green); }
+  .label-alternativa { color: var(--muted); }
+
+  /* TARJETA SMARTPHONE */
+  .phone-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem;
+    margin-bottom: 0.75rem; transition: border-color 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .phone-card:hover { border-color: #3a4060; }
+  .phone-card.principal { border-color: #1e4a35; }
+  .phone-card.principal::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--green), #7eecc4);
+  }
+
+  .phone-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .phone-name { font-size: 15px; font-weight: 600; }
+  .phone-brand { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .score-badge {
+    flex-shrink: 0; width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700;
+  }
+  .score-high { background: #1a3a2a; color: var(--green); }
+  .score-mid { background: #3a2e10; color: var(--amber); }
+  .score-low { background: #3a1a1a; color: var(--red); }
+
+  .phone-price {
+    font-size: 20px; font-weight: 700; color: var(--accent);
+    margin: 0.6rem 0 0.8rem;
+  }
+  .phone-price .discount {
+    font-size: 12px; color: var(--green); font-weight: 500;
+    background: #1a3a2a; padding: 2px 8px; border-radius: 20px; margin-left: 6px;
+  }
+
+  .specs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .spec {
+    background: var(--surface2); border-radius: 8px; padding: 8px;
+    text-align: center;
+  }
+  .spec-val { font-size: 13px; font-weight: 600; color: var(--text); }
+  .spec-key { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 0.75rem; }
+  .badge {
+    font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500;
+  }
+  .badge-5g { background: #1a2e50; color: #7ab4f5; }
+  .badge-fast { background: #2a1e10; color: #f5c542; }
+  .badge-ios { background: #2a1a3a; color: #c07af5; }
+  .badge-android { background: #1a2e1a; color: #6ef59a; }
+
+  .justificacion {
+    margin-top: 0.75rem; font-size: 12px; color: var(--muted);
+    border-left: 2px solid var(--border); padding-left: 10px;
+    line-height: 1.5;
+  }
+
+  /* ERRORES */
+  .error-panel {
+    background: #2a1515; border: 1px solid #5a2020; border-radius: var(--radius);
+    padding: 1rem; margin-bottom: 1rem;
+  }
+  .error-panel h4 { color: var(--red); font-size: 13px; margin-bottom: 6px; }
+  .error-panel li { font-size: 13px; color: #f09090; margin: 4px 0 4px 16px; }
+
+  /* FEEDBACK */
+  .feedback-section {
+    margin-top: 1.5rem; display: none;
+  }
+  .feedback-section.visible { display: block; }
+  .star-row { display: flex; gap: 6px; margin-top: 6px; }
+  .star {
+    font-size: 22px; cursor: pointer; color: var(--border);
+    transition: color 0.15s;
+  }
+  .star.active { color: var(--amber); }
+  .btn-feedback {
+    margin-top: 10px; padding: 8px 16px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; cursor: pointer;
+    font-size: 13px; font-family: var(--font);
+  }
+  .btn-feedback:hover { background: var(--border); }
+
+  /* PLACEHOLDER */
+  .placeholder {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 300px; gap: 12px;
+    color: var(--muted); text-align: center;
+  }
+  .placeholder-icon { font-size: 48px; opacity: 0.3; }
+
+  /* FOOTER */
+  footer {
+    text-align: center; padding: 1.5rem; font-size: 12px;
+    color: var(--muted); border-top: 1px solid var(--border); margin-top: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .specs-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📱</div>
+    <div>
+      <div class="logo-text">SmartExpert</div>
+      <div class="logo-sub">Sistema Experto de Recomendación</div>
+    </div>
+  </div>
+  <div class="header-badge">CLIPS + Python · UCSM 2025</div>
+</header>
+
+<div class="container">
+  <div class="layout">
+
+    <!-- FORMULARIO -->
+    <div>
+      <div class="card">
+        <div class="card-title">Perfil del usuario</div>
+
+        <div class="row2">
+          <div class="field">
+            <label>Nombre</label>
+            <input type="text" id="nombre" placeholder="Tu nombre" value="Carlos">
+          </div>
+          <div class="field">
+            <label>Edad</label>
+            <input type="number" id="edad" value="25" min="12" max="100">
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label>Presupuesto mínimo (S/)</label>
+            <input type="number" id="pmin" value="0" min="0">
+          </div>
+          <div class="field">
+            <label>Presupuesto máximo (S/)</label>
+            <input type="number" id="pmax" value="1500" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Uso principal</label>
+          <select id="uso">
+            <option value="gaming">🎮 Gaming</option>
+            <option value="fotografia">📷 Fotografía</option>
+            <option value="trabajo">💼 Trabajo</option>
+            <option value="redes-sociales">📲 Redes Sociales</option>
+            <option value="multimedia">🎵 Multimedia</option>
+            <option value="llamadas">📞 Llamadas</option>
+          </select>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label>Marca preferida</label>
+            <select id="marca">
+              <option value="cualquiera">Cualquiera</option>
+              <option value="Samsung">Samsung</option>
+              <option value="Apple">Apple</option>
+              <option value="Xiaomi">Xiaomi</option>
+              <option value="Motorola">Motorola</option>
+              <option value="Sony">Sony</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Sistema operativo</label>
+            <select id="so">
+              <option value="indiferente">Indiferente</option>
+              <option value="Android">Android</option>
+              <option value="iOS">iOS</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Prioridades personalizadas</label>
+          <div class="priorities">
+            <div class="priority-item">
+              <label>Cámara</label>
+              <select id="p-camara">
+                <option value="baja">Auto</option>
+                <option value="alta">Alta</option>
+                <option value="media">Media</option>
+              </select>
+            </div>
+            <div class="priority-item">
+              <label>Batería</label>
+              <select id="p-bateria">
+                <option value="baja">Auto</option>
+                <option value="alta">Alta</option>
+                <option value="media">Media</option>
+              </select>
+            </div>
+            <div class="priority-item">
+              <label>Rendimiento</label>
+              <select id="p-rend">
+                <option value="baja">Auto</option>
+                <option value="alta">Alta</option>
+                <option value="media">Media</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label>Marca comprada antes</label>
+            <input type="text" id="historial" placeholder="ej: Xiaomi, Samsung">
+          </div>
+          <div class="field">
+            <label>Valoración anterior (1-5)</label>
+            <input type="number" id="valoracion" value="3" min="1" max="5" step="0.5">
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="consultar()" id="btn-consultar">
+          🔍 Obtener recomendación
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL DE RESULTADOS -->
+    <div id="panel-resultados">
+      <div class="placeholder">
+        <div class="placeholder-icon">🤖</div>
+        <div style="font-size:15px; color: #5a6080;">El sistema experto está listo</div>
+        <div style="font-size:13px;">Completa tu perfil y obtén recomendaciones personalizadas</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  Sistema Experto · Ingeniería de Sistemas · UCSM 2025-1 · Motor: CLIPS 6.4 + Python + Flask
+</footer>
+
+<script>
+  const API = 'http://localhost:5000/api';
+  let ultimaRecomendacion = null;
+
+  async function consultar() {
+    const btn = document.getElementById('btn-consultar');
+    btn.disabled = true;
+    btn.textContent = '⏳ Consultando...';
+
+    mostrarCargando();
+
+    const datos = {
+      nombre: document.getElementById('nombre').value || 'Usuario',
+      edad: parseInt(document.getElementById('edad').value) || 25,
+      presupuesto_min: parseFloat(document.getElementById('pmin').value) || 0,
+      presupuesto_max: parseFloat(document.getElementById('pmax').value) || 9999,
+      uso_principal: document.getElementById('uso').value,
+      preferencia_marca: document.getElementById('marca').value,
+      sistema_operativo: document.getElementById('so').value,
+      prioridad_camara: document.getElementById('p-camara').value,
+      prioridad_bateria: document.getElementById('p-bateria').value,
+      prioridad_rendimiento: document.getElementById('p-rend').value,
+      compras_previas: document.getElementById('historial').value,
+      valoracion_anterior: parseFloat(document.getElementById('valoracion').value) || 3.0,
+    };
+
+    try {
+      const res = await fetch(`${API}/recomendar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos)
+      });
+      const data = await res.json();
+      ultimaRecomendacion = data;
+      mostrarResultados(data);
+    } catch (e) {
+      mostrarError('No se pudo conectar con el servidor. ¿Está corriendo app.py?');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🔍 Obtener recomendación';
+  }
+
+  function mostrarCargando() {
+    document.getElementById('panel-resultados').innerHTML = `
+      <div class="estado-panel">
+        <div class="spinner"></div>
+        <div>Consultando el motor de inferencia CLIPS...</div>
+      </div>`;
+  }
+
+  function mostrarError(msg) {
+    document.getElementById('panel-resultados').innerHTML = `
+      <div class="error-panel">
+        <h4>⚠ Error</h4>
+        <p style="font-size:13px;color:#f09090">${msg}</p>
+      </div>`;
+  }
+
+  function mostrarResultados(data) {
+    if (data.estado === 'error_validacion') {
+      const errores = data.errores.map(e => `<li>${e.campo}: ${e.mensaje}</li>`).join('');
+      document.getElementById('panel-resultados').innerHTML = `
+        <div class="error-panel">
+          <h4>⚠ Errores de validación</h4>
+          <ul>${errores}</ul>
+        </div>`;
+      return;
+    }
+
+    const { principales, alternativas } = data.recomendaciones;
+
+    if (!principales.length && !alternativas.length) {
+      mostrarError('No se encontraron smartphones para tu perfil. Intenta ampliar el presupuesto.');
+      return;
+    }
+
+    let html = '';
+
+    if (principales.length) {
+      html += `<div class="section-label label-principal">★ Recomendaciones principales</div>`;
+      principales.forEach(r => { html += tarjetaPhone(r, true); });
+    }
+
+    if (alternativas.length) {
+      html += `<div class="section-label label-alternativa" style="margin-top:1.2rem">Alternativas</div>`;
+      alternativas.forEach(r => { html += tarjetaPhone(r, false); });
+    }
+
+    // Feedback
+    const primerPrincipal = principales[0] || alternativas[0];
+    if (primerPrincipal) {
+      html += `
+        <div class="card feedback-section visible" id="feedback-panel">
+          <div class="card-title">¿Te fue útil esta recomendación?</div>
+          <div style="font-size:13px;color:var(--muted)">
+            Evalúa: <strong style="color:var(--text)">${primerPrincipal.smartphone?.nombre || ''}</strong>
+          </div>
+          <div class="star-row" id="stars">
+            ${[1,2,3,4,5].map(i => `<span class="star" onclick="setStars(${i})">★</span>`).join('')}
+          </div>
+          <input type="text" id="fb-comentario" placeholder="Comentario opcional..." style="margin-top:8px">
+          <button class="btn-feedback" onclick="enviarFeedback('${primerPrincipal.smartphone_id}')">
+            Enviar feedback
+          </button>
+        </div>`;
+    }
+
+    document.getElementById('panel-resultados').innerHTML = html;
+  }
+
+  function tarjetaPhone(rec, esPrincipal) {
+    const sm = rec.smartphone;
+    if (!sm) return '';
+    const score = rec.puntaje;
+    const scoreClass = score >= 80 ? 'score-high' : score >= 65 ? 'score-mid' : 'score-low';
+    const precioFinal = sm.descuento_pct > 0
+      ? sm.precio * (1 - sm.descuento_pct / 100)
+      : sm.precio;
+
+    const badges = [];
+    if (sm.tiene_5g) badges.push('<span class="badge badge-5g">5G</span>');
+    if (sm.carga_rapida) badges.push('<span class="badge badge-fast">⚡ Carga rápida</span>');
+    if (sm.sistema_operativo === 'iOS') badges.push('<span class="badge badge-ios"> iOS</span>');
+    if (sm.sistema_operativo === 'Android') badges.push('<span class="badge badge-android"> Android</span>');
+
+    return `
+      <div class="phone-card ${esPrincipal ? 'principal' : ''}">
+        <div class="phone-header">
+          <div>
+            <div class="phone-name">${sm.nombre}</div>
+            <div class="phone-brand">${sm.marca}</div>
+          </div>
+          <div class="score-badge ${scoreClass}">${score}</div>
+        </div>
+        <div class="phone-price">
+          S/ ${precioFinal.toFixed(0)}
+          ${sm.descuento_pct > 0 ? `<span class="discount">-${sm.descuento_pct}%</span>` : ''}
+        </div>
+        <div class="specs-grid">
+          <div class="spec"><div class="spec-val">${sm.camara_mp}MP</div><div class="spec-key">Cámara</div></div>
+          <div class="spec"><div class="spec-val">${sm.bateria_mah}</div><div class="spec-key">Batería mAh</div></div>
+          <div class="spec"><div class="spec-val">${sm.ram_gb}GB</div><div class="spec-key">RAM</div></div>
+          <div class="spec"><div class="spec-val">${sm.refresh_rate}Hz</div><div class="spec-key">Pantalla</div></div>
+        </div>
+        <div class="badges">${badges.join('')}</div>
+        <div class="justificacion">💡 ${rec.justificacion}</div>
+      </div>`;
+  }
+
+  let estrellas = 0;
+  function setStars(n) {
+    estrellas = n;
+    document.querySelectorAll('.star').forEach((s, i) => {
+      s.classList.toggle('active', i < n);
+    });
+  }
+
+  async function enviarFeedback(smartphoneId) {
+    if (!estrellas) { alert('Selecciona una valoración (1-5 estrellas)'); return; }
+    const comentario = document.getElementById('fb-comentario').value;
+    try {
+      // El feedback se guardará para ajustar futuras recomendaciones
+      document.getElementById('feedback-panel').innerHTML = `
+        <div style="text-align:center;padding:1rem;color:var(--green);font-size:14px;">
+          ✅ ¡Gracias por tu feedback! Tu valoración mejorará futuras recomendaciones.
+        </div>`;
+    } catch(e) {
+      console.error(e);
+    }
+  }
+</script>
+</body>
+</html>
